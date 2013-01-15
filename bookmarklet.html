@@ -1,0 +1,50 @@
+<html>
+    <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <script>
+        var apiKey = 'GOOGLE-API-KEY';
+        var clientId = 'CLIENT-ID';
+        var scopes = 'https://www.googleapis.com/auth/calendar';
+
+        function makeRequest() {
+            var request = gapi.client.calendar.calendarList.list();
+            request.execute(function(response) {
+                $.each(response.items, function(index, value) {
+                    $('#results').append(
+                        $('<button id="select-cal-' + value.id + '">').text(value.summary)
+                    );
+                }) 
+            });
+        }
+        
+        function handleClientLoad() {
+            gapi.client.setApiKey(apiKey);
+            gapi.client.load('calendar', 'v3');
+            window.setTimeout(checkAuth, 1);
+        }
+
+        function checkAuth() {
+            gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
+        }
+
+        function handleAuthResult(authResult) {
+            var authorizeButton = $('#authorize-button');
+            if (authResult && !authResult.error) {
+                authorizeButton.hide()
+                makeRequest();
+            } 
+            else {
+                authorizeButton.show();
+                authorizeButton.click(handleAuthClick);
+            }
+        }
+
+        function handleAuthClick(event) {
+            gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthResult);
+            return false;
+        }
+    </script>
+    <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
+    <div id="results">
+    </div>
+    <button id="authorize-button">Authorize!</button>
+</html>
