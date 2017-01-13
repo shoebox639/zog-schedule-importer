@@ -1,67 +1,134 @@
 (function() {
-    var ownName = $('.activities-wrapper h2').text().trim();
-    var events = [];
-    $('tr.season').each(function() {
-        var e = {};
-        var $row = $(this);
-        e.activity = $row.find('td:eq(1)').text().split('-')[0].trim();
-        e.date = $row.find('td:eq(2)').text().trim();
-        e.time = $row.find('td:eq(3)').text().trim();
-        e.location = $row.find('td:eq(4)').text().trim();
-        var teams = $row.find('td:eq(5) a').text();
-        e.opponent = teams.replace(ownName, '').trim();
-        e.home = teams.indexOf(ownName) > teams.indexOf(e.opponent);
-        events.push(e);
+  var events = [];
+  $('.activity_date').each(function() {
+    var dateElem = $(this);
+    var contentElem = dateElem.next();
+    var locationElem = contentElem.find('.location');
+    var teamList = contentElem.find('.team-list li');
+    var league = contentElem.find('.league_name').text();
+
+    events.push({
+      activity: league.replace(/^(\w+).*/, '$1'),
+      league: league,
+
+      date: dateElem.text().trim(),
+      time: contentElem.find('.time').text().trim(),
+
+      location: locationElem.text().trim(),
+      locationUrl: locationElem.find('a').attr('href'),
+
+      team1: $(teamList.get(0)).text().trim(),
+      team2: $(teamList.get(1)).text().trim()
     });
-    var times = '';
-    var locations = '';
-    var opponents = '';
-    var homeaway = '';
+  });
 
-    var nl = "\n";
+  var calEvents = summarize(events);
 
+  var nl = "\n";
+
+  function getMyTeam(events) {
+    var teams = events.reduce(function(acc, next) {
+      acc.push(next.team1);
+      acc.push(next.team2);
+
+      return acc;
+    }, []).reduce(function(acc, next) {
+      if (acc[next]) {
+        acc[next]++;
+      }
+      else {
+        acc[next] = 1;
+      }
+      return acc;
+    }, {});
+
+    return Object.keys(teams).reduce(function(mine, team) {
+      if (teams[team] === events.length) {
+        return team;
+      }
+      return mine;
+    }, null);
+  }
+
+  function summarize(events) {
+    return events.map(function(e) {
+      var myTeam = getMyTeam(events);
+
+      function homeOrAway(event) {
+        return event.team2 === myTeam ? 'Home' : 'Away';
+      }
+
+      var start = new Date(e.date + ' ' + e.time);
+
+      var end = new Date(start);
+      end.setHours(end.getHours() + 1);
+
+      var subject = e.activity + ' at ' + e.location;
+
+      var opponent = e.team1 === myTeam ? e.team2 : e.team1;
+
+      var description = homeOrAway(e, myTeam) + ' vs ' + opponent;
+
+      return {
+        start: start,
+        end: end,
+        subject: subject,
+        description: description,
+        location: e.location
+      }
+    });
+  }
+
+  function createCSV(calEvents) {
     var file = '';
     file += 'Subject,Start Date,Start Time,Description,Location' + nl;
-    $.each(events, function(i, e) {
-        var startTime = new Date(e.date + ' ' + e.time);
-        startTime.setYear(new Date().getYear());
+    calEvents.forEach(function(e) {
+      file += [
+        e.subject,
+        e.start.format('MM/dd/yy'),
+        e.start.format('H:mm:ss'),
+        '"' + e.description + '"',
+        e.location
+      ].join() + nl;
+    });
+    return file;
+  }
 
-        var subject = e.activity + ' at ' + e.location;
-        var desc = '"' + homeOrAway(e.home) + ' vs ' + e.opponent + '"';
+  function createICal(events, myTeam) {
+    var file = 'BEGIN:VCALENDAR' + nl;
+    file += 'VERSION:2.0' + nl;
+    file += 'PRODID:-//shusong/zog-events//NONSGML v1.0//EN' + nl;
 
-        file += [
-            subject, 
-            startTime.format('MM/dd/yy'), 
-            startTime.format('H:mm:ss'), 
-            desc, 
-            e.location
-        ].join() + nl;
+    var dateformat = 'yyyyMMddTHHmmssZ';
 
-        times += e.date + ' ' + e.time + '\t';
-        locations += e.location + '\t';
-        opponents += e.opponent + '\t';
-        homeaway += homeOrAway(e.home) + '\t';
+    events.forEach(function(e) {
+      file += 'BEGIN:VEVENT' + nl;
+
+      file += 'DTSTART:' + e.start.format(dateformat) + nl;
+      file += 'DTEND:' + e.end.format(dateformat) + nl;
+
+      file += 'LOCATION:' + e.location + nl;
+      file += 'DTSTAMP:' + new Date().format(dateformat) + nl;
+      file += 'SUMMARY:' + e.subject + nl;
+      file += 'DESCRIPTION:' + e.description + nl;
+
+      file += 'END:VEVENT' + nl;
     });
 
-    function homeOrAway(home) {
-        return home ? 'Home' : 'Away';
-    }
+    file += 'END:VCALENDAR' + nl;
+    return file;
+  }
 
-    var gdocContent = '';
-    gdocContent += times + nl;
-    gdocContent += locations + nl;
-    gdocContent += opponents + nl;
-    gdocContent += homeaway + nl;
+  function download(name, content) {
+    var elem = document.createElement('a');
+    elem.setAttribute('href', "data:text/plain;charset=utf-8," + encodeURIComponent(content));
+    elem.setAttribute('download', name);
+    elem.click();
+  }
 
-    function download(name, content) {
-        var elem = document.createElement('a');
-        elem.setAttribute('href', "data:text/plain;charset=utf-8," + encodeURIComponent(content));
-        elem.setAttribute('download', name);
-        elem.click();
-    }
+  var activity = events[0].activity;
 
-    var activity = events[0].activity;
-
-    download(activity + '-schedule-' + new Date().format('MM/dd/yy') + '.csv', file);
-    download(activity + '-gdoc-' + new Date().format('MM/dd/yy') + '.csv', gdocContent);
+  // google will take ics as well actually
+  // download(activity + '-' + new Date().format('yyyy-MM-dd') + '.csv', createCSV(calEvents));
+  download(activity + '-' + new Date().format('yyyy-MM-dd') + '.ics', createICal(calEvents));
 })();
