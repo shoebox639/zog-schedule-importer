@@ -99,7 +99,7 @@
     file += 'VERSION:2.0' + nl;
     file += 'PRODID:-//shusong/zog-events//NONSGML v1.0//EN' + nl;
 
-    var dateformat = 'yyyyMMddTHHmmssZ';
+    var dateformat = 'yyyyMMddTHHmmss';
 
     events.forEach(function(e) {
       file += 'BEGIN:VEVENT' + nl;
