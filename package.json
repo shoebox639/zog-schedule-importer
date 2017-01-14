@@ -11,8 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "webpack": "node_modules/webpack/bin/webpack.js",
     "build": "node bin/create-bookmarklet.js",
-    "readme": "node bin/update-readme",
-    "start": "npm run webpack && npm run build && npm run readme"
+    "start": "npm run webpack && npm run build"
   },
   "repository": {
     "type": "git",
