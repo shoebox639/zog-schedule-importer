@@ -2,7 +2,7 @@
 
 Imports Zog Sports schedule to your Google Calendar.
 
-## Instructions:
+## Installation
 
 Copy the following code, make sure you get all of it;
 
@@ -34,7 +34,6 @@ Copy the following code, make sure you get all of it;
 * In field, paste the copied code
 * Click Done
 
+## Usage
 
-
-
-
+Once installed, just click on this bookmark when you are on Zog's activity page with your teams schedule. It will download a file to your computer. Just open the file on MacOS and your Zog team schedule will be added to your calendar. You can also add it to Google Calendar by [importing](https://support.google.com/calendar/answer/37118?hl=en) it.
