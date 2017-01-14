@@ -1,0 +1,27 @@
+{
+  "name": "zog-schedule-importer",
+  "version": "0.2.0",
+  "description": "Bookmarklet for creating calendar events for zog schedule",
+  "main": "js",
+  "devDependencies": {
+    "mustache": "^2.3.0",
+    "webpack": "^1.14.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "webpack": "node_modules/webpack/bin/webpack.js",
+    "build": "node bin/create-bookmarklet.js",
+    "readme": "node bin/update-readme",
+    "start": "npm run webpack && npm run build && npm run readme"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shoebox639/zog-schedule-importer.git"
+  },
+  "author": "Shu Song <shu@shu-song.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shoebox639/zog-schedule-importer/issues"
+  },
+  "homepage": "https://github.com/shoebox639/zog-schedule-importer#readme"
+}

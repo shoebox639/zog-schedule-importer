@@ -1,0 +1,16 @@
+javascript:!function(modules){function __webpack_require__(moduleId){if(installedModules[moduleId])return installedModules[moduleId].exports;var module=installedModules[moduleId]={exports:{},id:moduleId,loaded:!1};return modules[moduleId].call(module.exports,module,module.exports,__webpack_require__),module.loaded=!0,module.exports}var installedModules={};return __webpack_require__.m=modules,__webpack_require__.c=installedModules,__webpack_require__.p="",__webpack_require__(0)}([function(module,exports,__webpack_require__){"use strict";var rawEvents=__webpack_require__(1),events=__webpack_require__(2)(rawEvents),createICal=(__webpack_require__(3),__webpack_require__(4)),download=__webpack_require__(5),activity=events[0].activity;download(activity+"-"+(new Date).format("yyyy-MM-dd")+".ics",createICal(events))},function(module,exports){"use strict";var events=[];$(".activity_date").each(function(){var dateElem=$(this),contentElem=dateElem.next(),locationElem=contentElem.find(".location"),teamList=contentElem.find(".team-list li"),league=contentElem.find(".league_name").text();events.push({activity:league.replace(/^(\w+).*/,"$1"),league:league,date:dateElem.text().trim(),time:contentElem.find(".time").text().trim(),location:locationElem.text().trim(),locationUrl:locationElem.find("a").attr("href"),team1:$(teamList.get(0)).text().trim(),team2:$(teamList.get(1)).text().trim()})}),module.exports=events},function(module,exports){"use strict";function getMyTeam(events){var teams=events.reduce(function(acc,next){return acc.push(next.team1),acc.push(next.team2),acc},[]).reduce(function(acc,next){return acc[next]?acc[next]++:acc[next]=1,acc},{});return Object.keys(teams).reduce(function(mine,team){return teams[team]===events.length?team:mine},null)}function homeOrAway(event,myTeam){return event.team2===myTeam?"Home":"Away"}function summarize(events){return events.map(function(e){var myTeam=getMyTeam(events),start=new Date(e.date+" "+e.time),end=new Date(start);end.setHours(end.getHours()+1);var subject=e.activity+" at "+e.location,opponent=e.team1===myTeam?e.team2:e.team1,description=homeOrAway(e,myTeam)+" vs "+opponent;return{start:start,end:end,subject:subject,description:description,location:e.location}})}module.exports=summarize},function(module,exports){"use strict";module.exports=function(calEvents){var file="";return file+="Subject,Start Date,Start Time,Description,Location
+",calEvents.forEach(function(e){file+=[e.subject,e.start.format("MM/dd/yy"),e.start.format("H:mm:ss"),'"'+e.description+'"',e.location].join()+"
+"}),file}},function(module,exports){"use strict";var header="
+BEGIN:VCALENDAR
+VERSION:2.0;
+PRODID:-//shusong/zog-events//NONSGML v1.0//EN",dateformat="yyyyMMddTHHmmss",eventTemplate=function(e){return"
+BEGIN:VEVENT
+DTSTART:"+e.start.format(dateformat)+"
+DTEND:"+e.end.format(dateformat)+"
+LOCATION:"+e.location+"
+DTSTAMP:"+(new Date).format(dateformat)+"
+SUMMARY:"+e.subject+"
+DESCRIPTION:"+e.description+"
+END:VEVENT
+"};module.exports=function(events){var file=header;return events.forEach(function(e){file+=eventTemplate(e)}),file+="END:VCALENDAR
+"}},function(module,exports){"use strict";module.exports=function(name,content){var elem=document.createElement("a");elem.setAttribute("href","data:text/plain;charset=utf-8,"+encodeURIComponent(content)),elem.setAttribute("download",name),elem.click()}}]);
