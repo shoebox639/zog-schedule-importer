@@ -1,24 +1,33 @@
 var events = [];
+
 $('.activity_date').each(function() {
   var dateElem = $(this);
-  var contentElem = dateElem.next();
-  var locationElem = contentElem.find('.location');
-  var teamList = contentElem.find('.team-list li');
-  var league = contentElem.find('.league_name').text();
 
-  events.push({
-    activity: league.replace(/^(\w+).*/, '$1'),
-    league: league,
+  function getEvent(elem) {
+    var locationElem = elem.find('.location');
+    if (locationElem.length > 0) {
+      var teamList = elem.find('.team-list li');
+      var league = elem.find('.league_name').text();
 
-    date: dateElem.text().trim(),
-    time: contentElem.find('.time').text().trim(),
+      events.push({
+        activity: league.split('-')[0].trim(),
+        league: league,
 
-    location: locationElem.text().trim(),
-    locationUrl: locationElem.find('a').attr('href'),
+        date: dateElem.text().trim(),
+        time: elem.find('.time').text().trim(),
 
-    team1: $(teamList.get(0)).text().trim(),
-    team2: $(teamList.get(1)).text().trim()
-  });
+        location: locationElem.text().trim(),
+        locationUrl: locationElem.find('a').attr('href'),
+
+        team1: $(teamList.get(0)).text().trim(),
+        team2: $(teamList.get(1)).text().trim()
+      });
+
+      getEvent($(elem).next());
+    }
+  }
+
+  getEvent(dateElem.next());
 });
 
 module.exports = events;
